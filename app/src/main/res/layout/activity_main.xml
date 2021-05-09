@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".view.MainActivity">
+
+    <TableRow
+        android:padding="5dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:textAlignment="center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:text="@string/wifi_name"
+            android:textColor="@color/black"
+            android:textSize="22sp" />
+
+        <Spinner
+            android:layout_weight="8"
+            android:id="@+id/wifi_spinner"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+    </TableRow>
+
+    <TableRow
+        android:padding="5dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:gravity="center"
+            android:textAlignment="center"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="2"
+            android:text="@string/wifi_pwdType"
+            android:textColor="@color/black"
+            android:textSize="22sp" />
+
+        <RadioGroup
+            android:id="@+id/radioGroup_pwdType"
+            android:layout_weight="8"
+            android:orientation="horizontal"
+            android:layout_height="match_parent"
+            android:layout_width="wrap_content">
+            <RadioButton
+                android:id="@+id/radio_pwdType_0"
+                android:text="@string/wifi_pwdType_0"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+            <RadioButton
+                android:id="@+id/radio_pwdType_1"
+                android:checked="true"
+                android:text="@string/wifi_pwdType_1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+            <RadioButton
+                android:id="@+id/radio_pwdType_2"
+                android:text="@string/wifi_pwdType_2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        </RadioGroup>
+    </TableRow>
+
+    <TableRow
+        android:id="@+id/wifi_pwdType_show"
+        android:padding="5dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:gravity="center"
+            android:textAlignment="center"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="2"
+            android:text="@string/wifi_pwd"
+            android:textColor="@color/black"
+            android:textSize="22sp" />
+
+        <EditText
+            android:layout_weight="8"
+            android:id="@+id/wifiPwd"
+            android:inputType="textPassword"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:autofillHints="请输入密码"
+            tools:ignore="LabelFor" />
+    </TableRow>
+
+
+    <TableRow
+        android:padding="5dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:gravity="center"
+            android:textAlignment="center"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="2"
+            android:text="@string/wifi_conn_type"
+            android:textColor="@color/black"
+            android:textSize="22sp" />
+
+        <RadioGroup
+            android:id="@+id/radioGroup_connType"
+            android:layout_weight="8"
+            android:orientation="horizontal"
+            android:layout_height="match_parent"
+            android:layout_width="wrap_content">
+            <RadioButton
+                android:id="@+id/radio_dhcp"
+                android:checked="true"
+                android:text="@string/wifi_connType_dhcp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+            <RadioButton
+                android:id="@+id/radio_static"
+                android:text="@string/wifi_connType_static"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        </RadioGroup>
+    </TableRow>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:visibility="gone"
+        android:id="@+id/wifi_static_show"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent">
+
+
+        <TableRow
+            android:padding="5dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:gravity="center"
+                android:textAlignment="center"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="2"
+                android:text="@string/wifi_static_ip"
+                android:textColor="@color/black"
+                android:textSize="22sp" />
+            <EditText
+                android:layout_weight="8"
+                android:id="@+id/wifiStaticIp"
+                android:inputType="text"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:autofillHints="请输入IP地址"
+                tools:ignore="LabelFor" />
+        </TableRow>
+
+
+        <TableRow
+            android:padding="5dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:gravity="center"
+                android:textAlignment="center"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="2"
+                android:text="@string/wifi_static_gateway"
+                android:textColor="@color/black"
+                android:textSize="22sp" />
+            <EditText
+                android:layout_weight="8"
+                android:id="@+id/wifiStaticGateway"
+                android:inputType="text"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:autofillHints="请输入网关IP"
+                tools:ignore="LabelFor" />
+        </TableRow>
+
+        <TableRow
+            android:padding="5dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:gravity="center"
+                android:textAlignment="center"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="2"
+                android:text="@string/wifi_static_netmask"
+                android:textColor="@color/black"
+                android:textSize="22sp" />
+            <EditText
+                android:layout_weight="8"
+                android:id="@+id/wifiStaticNetmask"
+                android:inputType="text"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:autofillHints="请输入子网掩码"
+                tools:ignore="LabelFor" />
+        </TableRow>
+
+        <TableRow
+            android:padding="5dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:gravity="center"
+                android:textAlignment="center"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="2"
+                android:text="@string/wifi_static_dns"
+                android:textColor="@color/black"
+                android:textSize="22sp" />
+            <EditText
+                android:layout_weight="8"
+                android:id="@+id/wifiStaticDns"
+                android:inputType="textPassword"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:autofillHints="请输入DNS地址"
+                tools:ignore="LabelFor" />
+        </TableRow>
+
+    </LinearLayout>
+
+    <TableRow
+        android:padding="5dp"
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:paddingHorizontal="40dp"
+            android:paddingVertical="5dp"
+            android:id="@+id/btn_connect"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="@string/btn_connect"
+            android:textAlignment="center"/>
+    </TableRow>
+
+</TableLayout>
