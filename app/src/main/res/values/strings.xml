@@ -3,8 +3,7 @@
     <string name="wifi_name">wifi名称</string>
     <string name="wifi_pwdType">加密方式</string>
     <string name="wifi_pwdType_0">无密码</string>
-    <string name="wifi_pwdType_1">加密方式1</string>
-    <string name="wifi_pwdType_2">加密方式2</string>
+    <string name="wifi_pwdType_1">有密码</string>
     <string name="wifi_pwd">wifi密码</string>
     <string name="wifi_conn_type">wifi连接类型</string>
     <string name="wifi_connType_static">静态IP</string>

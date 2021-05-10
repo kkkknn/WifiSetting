@@ -2,9 +2,12 @@
 <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
+    android:layout_gravity="center"
+    android:layout_width="wrap_content"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
     tools:context=".view.MainActivity">
 
     <TableRow
@@ -58,11 +61,6 @@
                 android:id="@+id/radio_pwdType_1"
                 android:checked="true"
                 android:text="@string/wifi_pwdType_1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-            <RadioButton
-                android:id="@+id/radio_pwdType_2"
-                android:text="@string/wifi_pwdType_2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
         </RadioGroup>
@@ -135,7 +133,6 @@
         android:layout_height="wrap_content"
         android:layout_width="match_parent">
 
-
         <TableRow
             android:padding="5dp"
             android:layout_width="match_parent"
@@ -148,7 +145,7 @@
                 android:layout_weight="2"
                 android:text="@string/wifi_static_ip"
                 android:textColor="@color/black"
-                android:textSize="22sp" />
+                android:textSize="14sp" />
             <EditText
                 android:layout_weight="8"
                 android:id="@+id/wifiStaticIp"
@@ -172,7 +169,7 @@
                 android:layout_weight="2"
                 android:text="@string/wifi_static_gateway"
                 android:textColor="@color/black"
-                android:textSize="22sp" />
+                android:textSize="14sp" />
             <EditText
                 android:layout_weight="8"
                 android:id="@+id/wifiStaticGateway"
@@ -195,7 +192,7 @@
                 android:layout_weight="2"
                 android:text="@string/wifi_static_netmask"
                 android:textColor="@color/black"
-                android:textSize="22sp" />
+                android:textSize="14sp" />
             <EditText
                 android:layout_weight="8"
                 android:id="@+id/wifiStaticNetmask"
@@ -218,7 +215,7 @@
                 android:layout_weight="2"
                 android:text="@string/wifi_static_dns"
                 android:textColor="@color/black"
-                android:textSize="22sp" />
+                android:textSize="14sp" />
             <EditText
                 android:layout_weight="8"
                 android:id="@+id/wifiStaticDns"

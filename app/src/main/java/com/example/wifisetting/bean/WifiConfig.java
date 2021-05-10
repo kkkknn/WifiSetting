@@ -1,9 +1,11 @@
 package com.example.wifisetting.bean;
 
 public class WifiConfig {
-    private String name;
-    private String pwd;
-    private int pwdType;
-    private int connType;
-    private StaticConnConfig staticConnConfig;
+    public String name;
+    public String pwd;
+    public int pwdType;
+    public int connType;
+    public StaticConnConfig staticConnConfig;
+
+
 }
