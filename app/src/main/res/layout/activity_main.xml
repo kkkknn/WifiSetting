@@ -14,6 +14,47 @@
         android:padding="5dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
+        <TextView
+            android:textAlignment="center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:text="@string/wifi_state"
+            android:textColor="@color/black"
+            android:textSize="22sp" />
+
+        <LinearLayout
+            android:textAlignment="center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_weight="8">
+            <TextView
+                android:id="@+id/wifi_state_show"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="14sp" />
+            <TextView
+                android:id="@+id/wifi_state_connName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:textSize="14sp" />
+            <TextView
+                android:id="@+id/wifi_state_connIp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+
+    </TableRow>
+
+    <TableRow
+        android:padding="5dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
 
         <TextView
             android:textAlignment="center"
@@ -59,8 +100,13 @@
                 android:layout_height="wrap_content"/>
             <RadioButton
                 android:id="@+id/radio_pwdType_1"
-                android:checked="true"
                 android:text="@string/wifi_pwdType_1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+            <RadioButton
+                android:id="@+id/radio_pwdType_2"
+                android:checked="true"
+                android:text="@string/wifi_pwdType_2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
         </RadioGroup>
@@ -150,6 +196,7 @@
                 android:layout_weight="8"
                 android:id="@+id/wifiStaticIp"
                 android:inputType="text"
+                android:text="@string/wifi_static_ip_emp"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:autofillHints="请输入IP地址"
@@ -174,34 +221,13 @@
                 android:layout_weight="8"
                 android:id="@+id/wifiStaticGateway"
                 android:inputType="text"
+                android:text="@string/wifi_static_gateway_emp"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:autofillHints="请输入网关IP"
                 tools:ignore="LabelFor" />
         </TableRow>
 
-        <TableRow
-            android:padding="5dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-            <TextView
-                android:gravity="center"
-                android:textAlignment="center"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_weight="2"
-                android:text="@string/wifi_static_netmask"
-                android:textColor="@color/black"
-                android:textSize="14sp" />
-            <EditText
-                android:layout_weight="8"
-                android:id="@+id/wifiStaticNetmask"
-                android:inputType="text"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:autofillHints="请输入子网掩码"
-                tools:ignore="LabelFor" />
-        </TableRow>
 
         <TableRow
             android:padding="5dp"
@@ -219,7 +245,8 @@
             <EditText
                 android:layout_weight="8"
                 android:id="@+id/wifiStaticDns"
-                android:inputType="textPassword"
+                android:text="@string/wifi_static_dns_emp"
+                android:inputType="text"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:autofillHints="请输入DNS地址"

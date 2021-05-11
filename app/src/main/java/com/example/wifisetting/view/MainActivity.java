@@ -5,10 +5,22 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.net.NetworkInfo;
 import android.net.wifi.ScanResult;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
+import android.os.Parcelable;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -20,6 +32,7 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TableRow;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.wifisetting.R;
@@ -29,14 +42,16 @@ import com.example.wifisetting.model.SpinnerAdapter;
 import com.example.wifisetting.model.WifiControlUtil;
 import com.example.wifisetting.util.CheckUtil;
 
+
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
     private final static String TAG="MainActivity";
     private RadioGroup radioGroup_pwd,radioGroup_conn;
-    private RadioButton radio_pwdType_0,radio_pwdType_1;
+    private RadioButton radio_pwdType_0,radio_pwdType_1,radio_pwdType_2;
     private RadioButton wifi_connType_dhcp,wifi_connType_static;
-    private EditText wifiPwd,staticIp,staticDns,staticNetmask,staticGateway;
+    private EditText wifiPwd,staticIp,staticDns,staticGateway;
+    private TextView wifi_state_name,wifi_state_ip,wifi_state_show;
     private LinearLayout staticLayout;
     private TableRow pwdRow;
     private Button submitBtn;
@@ -46,6 +61,51 @@ public class MainActivity extends AppCompatActivity {
     private static WifiConfig wifiConfig=new WifiConfig();
     private boolean isDhcp=true;
     private boolean isPwd=true;
+    private boolean isPermission=false;
+    private boolean threadFlag=false;
+
+    private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (WifiManager.NETWORK_STATE_CHANGED_ACTION.equals(intent.getAction())) {
+                Parcelable parcelableExtra = intent
+                        .getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
+                if (null != parcelableExtra) {
+                    NetworkInfo networkInfo = (NetworkInfo) parcelableExtra;
+                    NetworkInfo.State state = networkInfo.getState();
+                    boolean isConnected = state == NetworkInfo.State.CONNECTED;// 当然，这边可以更精确的确定状态
+                    Log.i("H3c", "isConnected" + isConnected);
+                    if (isConnected) {
+                        WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+                        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+                        if(wifiInfo!=null){
+                            wifi_state_ip.setVisibility(View.VISIBLE);
+                            wifi_state_name.setVisibility(View.VISIBLE);
+                            wifi_state_show.setText("已连接WIFI");
+                            wifi_state_ip.setText(ip2str(wifiInfo.getIpAddress()));
+                            wifi_state_name.setText("SSID："+wifiInfo.getSSID());
+                        }
+                        Log.i(TAG, "onReceive: "+wifiInfo.getSSID());
+                        Log.i(TAG, "onReceive: "+wifiInfo.getIpAddress());
+                    } else {
+                        wifi_state_show.setText("未连接WIFI");
+                    }
+                }
+            }
+        }
+    };
+
+    private Handler handler=new Handler(Looper.getMainLooper(), new Handler.Callback() {
+        @Override
+        public boolean handleMessage(@NonNull Message message) {
+            switch (message.what){
+                case 11:
+                    ((BaseAdapter)spinner_wifi.getAdapter()).notifyDataSetChanged();
+                    break;
+            }
+            return false;
+        }
+    });
 
     private RadioGroup.OnCheckedChangeListener pwdRadioGroupListener=new RadioGroup.OnCheckedChangeListener() {
         @Override
@@ -53,11 +113,14 @@ public class MainActivity extends AppCompatActivity {
             if(radio_pwdType_0.getId()==i){
                 //隐藏密码设置
                 pwdRow.setVisibility(View.GONE);
-                isPwd=false;
-            }else{
+                wifiConfig.pwdType=0;
+            }else if(radio_pwdType_1.getId()==i){
                 //全部显示
                 pwdRow.setVisibility(View.VISIBLE);
-                isPwd=true;
+                wifiConfig.pwdType=1;
+            }else if(radio_pwdType_2.getId()==i){
+                pwdRow.setVisibility(View.VISIBLE);
+                wifiConfig.pwdType=2;
             }
         }
     };
@@ -82,11 +145,8 @@ public class MainActivity extends AppCompatActivity {
             if(view.getId()==submitBtn.getId()){
                 Log.i(TAG, "onClick: 获取配置信息并连接WiFi");
                 //验证当前所输入的所有信息 是否有误
-                if(isPwd){
-                    wifiConfig.pwdType=1;
+                if(wifiConfig.pwdType==1||wifiConfig.pwdType==2){
                     wifiConfig.pwd=wifiPwd.getText().toString();
-                }else {
-                    wifiConfig.pwdType=0;
                 }
                 if(isDhcp){
                     wifiConfig.connType=1;
@@ -96,7 +156,17 @@ public class MainActivity extends AppCompatActivity {
                     wifiConfig.staticConnConfig.this_ip=staticIp.getText().toString();
                     wifiConfig.staticConnConfig.dns_ip=staticDns.getText().toString();
                     wifiConfig.staticConnConfig.gateWay_ip=staticGateway.getText().toString();
-                    wifiConfig.staticConnConfig.net_mask=staticNetmask.getText().toString();
+
+                    //写入当前输入缓存
+                    SharedPreferences sharedPreferences=  (SharedPreferences)getSharedPreferences("wifi_info", Context.MODE_PRIVATE);
+                    if(sharedPreferences!=null){
+                        SharedPreferences.Editor editor=sharedPreferences.edit();
+                        editor.putString("staticIp",staticIp.getText().toString());
+                        editor.putString("staticDns",staticDns.getText().toString());
+                        editor.putString("staticGateway",staticGateway.getText().toString());
+                        editor.apply();
+                        editor.commit();
+                    }
                 }
                 if(checkInfo(wifiConfig)){
                     WifiControlUtil.getInstance().setContext(getApplicationContext()).connWifi(wifiConfig);
@@ -124,7 +194,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         initView();
-
     }
 
     private boolean checkInfo(WifiConfig wifiConfig){
@@ -142,9 +211,6 @@ public class MainActivity extends AppCompatActivity {
             if(!CheckUtil.checkIpStr(wifiConfig.staticConnConfig.dns_ip)){
                 str="dns 错误";
             }
-            if(!CheckUtil.checkIpStr(wifiConfig.staticConnConfig.net_mask)){
-                str="子网掩码 错误";
-            }
         }
         if(str!=null){
             Toast.makeText(getApplication(),str,Toast.LENGTH_SHORT).show();
@@ -155,14 +221,29 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initView(){
+        wifi_state_name=findViewById(R.id.wifi_state_connName);
+        wifi_state_ip=findViewById(R.id.wifi_state_connIp);
+        wifi_state_show=findViewById(R.id.wifi_state_show);
+
         wifiPwd=findViewById(R.id.wifiPwd);
         staticIp=findViewById(R.id.wifiStaticIp);
         staticDns=findViewById(R.id.wifiStaticDns);
-        staticNetmask=findViewById(R.id.wifiStaticNetmask);
         staticGateway=findViewById(R.id.wifiStaticGateway);
+        //取出缓存并填充
+        SharedPreferences sharedPreferences=  getSharedPreferences("wifi_info", Context.MODE_PRIVATE);
+        if(sharedPreferences!=null){
+            String ip=sharedPreferences.getString("staticIp","");
+            String dns=sharedPreferences.getString("staticDns","");
+            String gateWay=sharedPreferences.getString("staticGateway","");
+
+            if(!ip.equals(""))staticIp.setText(ip);
+            if(!dns.equals(""))staticDns.setText(dns);
+            if(!gateWay.equals(""))staticGateway.setText(gateWay);
+        }
 
         radio_pwdType_0=findViewById(R.id.radio_pwdType_0);
         radio_pwdType_1=findViewById(R.id.radio_pwdType_1);
+        radio_pwdType_2=findViewById(R.id.radio_pwdType_2);
         wifi_connType_dhcp=findViewById(R.id.radio_dhcp);
         wifi_connType_static=findViewById(R.id.radio_static);
         staticLayout=findViewById(R.id.wifi_static_show);
@@ -179,8 +260,6 @@ public class MainActivity extends AppCompatActivity {
         spinner_wifi.setAdapter(spinnerAdapter);
         spinner_wifi.setOnItemSelectedListener(onItemSelectedListener);
 
-        //todo 设置重复任务，每隔10S重新获取wifi列表并显示
-        
 
         //动态权限申请
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
@@ -195,12 +274,18 @@ public class MainActivity extends AppCompatActivity {
             if (permissions.size() > 0) {
                 requestPermissions(permissions.toArray(new String[permissions.size()]), PERMISSON_REQUESTCODE);
             } else {
-                syncWifiList();
+                isPermission=true;
             }
         }
+        //重复任务，每隔10S重新获取wifi列表并显示
+        threadFlag=true;
+        new Thread(new SyncThread()).start();
 
         //注册静态广播 监听wifi连接状态
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);//添加监听网络改变的动作
 
+        registerReceiver(broadcastReceiver, intentFilter);//注册广播
     }
 
     @Override
@@ -210,26 +295,62 @@ public class MainActivity extends AppCompatActivity {
             int grantResult = grantResults[0];
             boolean granted = grantResult == PackageManager.PERMISSION_GRANTED; // 请求权限的结果  true代表用户同意了
             if(granted){
-                syncWifiList();
+                isPermission=true;
             }
         }
     }
 
-    //获取并同步显示 搜索到的wifi列表
-    private void syncWifiList(){
-        WifiControlUtil wifiControlUtil=WifiControlUtil.getInstance().setContext(getApplicationContext());
-        wifiControlUtil.openWifi();
-        ArrayList<ScanResult> arrayList=wifiControlUtil.searchWifi();
-        list.clear();
-        for (ScanResult scanResult:arrayList) {
-            String[] arrs=new String[2];
-            arrs[0]=scanResult.SSID;
-            arrs[1]=Integer.toString(scanResult.level);
-            list.add(arrs);
-            Log.i(TAG, "搜索到的wifi名字: "+ scanResult.SSID);
+
+
+    class SyncThread implements Runnable{
+        @Override
+        public void run() {
+            WifiControlUtil wifiControlUtil=WifiControlUtil.getInstance().setContext(getApplicationContext());
+            wifiControlUtil.openWifi();
+            ArrayList<ScanResult> arrayList;
+            while(threadFlag){
+                if(isPermission){
+                    try {
+                        arrayList=wifiControlUtil.searchWifi();
+                        list.clear();
+                        for (ScanResult scanResult:arrayList) {
+                            String[] arrs=new String[2];
+                            arrs[0]=scanResult.SSID;
+                            arrs[1]=Integer.toString(scanResult.level);
+                            list.add(arrs);
+                        }
+                        Log.i(TAG, "搜索到的wifi数量: "+ list.size());
+                        //发送刷新命令
+                        handler.sendEmptyMessage(11);
+                        Thread.sleep(5000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+            }
         }
-        ((BaseAdapter)spinner_wifi.getAdapter()).notifyDataSetChanged();
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        threadFlag=false;
+        unregisterReceiver(broadcastReceiver);//取消注册广播
+    }
+
+    //IP地址转换
+    private String ip2str(int ip){
+        if(ip>0){
+            StringBuilder sb = new StringBuilder();
+            sb.append(ip & 0xFF).append(".");
+            sb.append((ip >> 8) & 0xFF).append(".");
+            sb.append((ip >> 16) & 0xFF).append(".");
+            sb.append((ip >> 24) & 0xFF);
+            return "IP地址："+sb.toString();
+        }else{
+            return "未连接wifi：";
+        }
+    }
 
 }

@@ -11,13 +11,18 @@ import androidx.core.app.ActivityCompat;
 
 import com.example.wifisetting.bean.WifiConfig;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
 //单例模式
 public class WifiControlUtil {
     private volatile static WifiControlUtil wifiControlUtil;
-    private WifiControlUtilCallback wifiControlUtilCallback;
     private Context mContext;
     private WifiManager mWifiManager;
 
@@ -77,15 +82,30 @@ public class WifiControlUtil {
         if(wifiConfig==null){
             return;
         }
-        if(wifiConfig.pwdType==0){
+        if(wifiConfig.connType==1){
             mWifiManager.disableNetwork(mWifiManager.getConnectionInfo().getNetworkId());
-            int netId = mWifiManager.addNetwork(getWifiConfig(wifiConfig.name, "", false));
+            int netId = mWifiManager.addNetwork(getWifiConfig(wifiConfig.name, wifiConfig.pwd, wifiConfig.pwdType));
             mWifiManager.enableNetwork(netId, true);
-        }else{
+        }else if(wifiConfig.connType==0){
             mWifiManager.disableNetwork(mWifiManager.getConnectionInfo().getNetworkId());
-            int netId = mWifiManager.addNetwork(getWifiConfig(wifiConfig.name, wifiConfig.pwd, true));
+            int netId = 0;
+            try {
+                InetAddress[] addresses=new InetAddress[1];
+                addresses[0]=InetAddress.getByName(wifiConfig.staticConnConfig.dns_ip);
+                netId = mWifiManager.addNetwork(setStaticIpConfiguration(
+                        getWifiConfig(wifiConfig.name, wifiConfig.pwd, wifiConfig.pwdType),
+                        InetAddress.getByName(wifiConfig.staticConnConfig.this_ip),
+                        24,
+                        InetAddress.getByName(wifiConfig.staticConnConfig.gateWay_ip),
+                        addresses));
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            }
             mWifiManager.enableNetwork(netId, true);
         }
+
+        //重新连接wifi
+        //mWifiManager.reconnect();
     }
 
     //断开当前连接WiFi
@@ -94,7 +114,7 @@ public class WifiControlUtil {
     }
 
 
-    private WifiConfiguration getWifiConfig(String ssid, String pws, boolean isHasPws){
+    private WifiConfiguration getWifiConfig(String ssid, String pws, int type){
         WifiConfiguration config = new WifiConfiguration();
         config.allowedAuthAlgorithms.clear();
         config.allowedGroupCiphers.clear();
@@ -107,13 +127,24 @@ public class WifiControlUtil {
         if(tempConfig != null) {
             mWifiManager.removeNetwork(tempConfig.networkId);
         }
-        if (isHasPws){
+        if (type==1){
+            config.hiddenSSID = true;
+            config.wepKeys[0]= "\""+pws+"\"";
+            config.allowedAuthAlgorithms.set(WifiConfiguration.AuthAlgorithm.SHARED);
+            config.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.CCMP);
+            config.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.TKIP);
+            config.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.WEP40);
+            config.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.WEP104);
+            config.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
+            config.wepTxKeyIndex = 0;
+        }else if(type==2){
             config.preSharedKey = "\""+pws+"\"";
             config.hiddenSSID = true;
             config.allowedAuthAlgorithms.set(WifiConfiguration.AuthAlgorithm.OPEN);
             config.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.TKIP);
             config.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK);
             config.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.TKIP);
+            //config.allowedProtocols.set(WifiConfiguration.Protocol.WPA);
             config.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.CCMP);
             config.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.CCMP);
             config.status = WifiConfiguration.Status.ENABLED;
@@ -138,21 +169,105 @@ public class WifiControlUtil {
     }
 
 
-    //设置监听
-    public void setCallBack(WifiControlUtilCallback callBack){
-        wifiControlUtilCallback=callBack;
+    private WifiConfiguration setStaticIpConfiguration(WifiConfiguration config, InetAddress ipAddress, int prefixLength,
+                                                 InetAddress gateway, InetAddress[] dns) {
+        try{
+            // First set up IpAssignment to STATIC.
+            Object ipAssignment = getEnumValue(
+                    "android.net.IpConfiguration$IpAssignment", "STATIC");
+            callMethod(config, "setIpAssignment",
+                    new String[] { "android.net.IpConfiguration$IpAssignment" },
+                    new Object[] { ipAssignment });
+
+            // Then set properties in StaticIpConfiguration.
+            Object staticIpConfig = newInstance("android.net.StaticIpConfiguration");
+
+            Object linkAddress = newInstance("android.net.LinkAddress",
+                    new Class[] { InetAddress.class, int.class }, new Object[] {
+                            ipAddress, prefixLength });
+            setField(staticIpConfig, "ipAddress", linkAddress);
+            setField(staticIpConfig, "gateway", gateway);
+            ArrayList<Object> aa = (ArrayList<Object>) getField(staticIpConfig, "dnsServers");
+            aa.clear();
+            for (int i = 0; i < dns.length; i++)
+                aa.add(dns[i]);
+            callMethod(config, "setStaticIpConfiguration",
+                    new String[] { "android.net.StaticIpConfiguration" },
+                    new Object[] { staticIpConfig });
+            System.out.println("conconconm" + config);
+            int updateNetwork = mWifiManager.updateNetwork(config);
+            boolean saveConfiguration = mWifiManager.saveConfiguration();
+            System.out.println("updateNetwork" + updateNetwork + saveConfiguration);
+            System.out.println("ttttttttttt" + "成功");
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return config;
     }
 
-    interface WifiControlUtilCallback{
-        void findWifi();
-        void connect();
-        void disConnect();
-        Exception error();
-        void opened();
-        void closed();
-        void searchStart();
-        void searchEnd();
+    private static Object newInstance(String className)
+            throws ClassNotFoundException, InstantiationException,
+            IllegalAccessException, NoSuchMethodException,
+            IllegalArgumentException, InvocationTargetException {
+        return newInstance(className, new Class[0], new Object[0]);
     }
 
 
+
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    private static Object newInstance(String className,
+                                      Class[] parameterClasses, Object[] parameterValues)
+            throws NoSuchMethodException, InstantiationException,
+            IllegalAccessException, IllegalArgumentException,
+            InvocationTargetException, ClassNotFoundException {
+        Class clz = Class.forName(className);
+        Constructor constructor = clz.getConstructor(parameterClasses);
+        return constructor.newInstance(parameterValues);
+    }
+
+
+
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    private static Object getEnumValue(String enumClassName, String enumValue)
+            throws ClassNotFoundException {
+        Class enumClz = (Class) Class.forName(enumClassName);
+        return Enum.valueOf(enumClz, enumValue);
+    }
+
+
+
+    private static void setField(Object object, String fieldName, Object value)
+            throws IllegalAccessException, IllegalArgumentException,
+            NoSuchFieldException {
+        Field field = object.getClass().getDeclaredField(fieldName);
+        field.set(object, value);
+    }
+
+
+
+    private static Object getField(Object object, String fieldName)
+            throws IllegalAccessException, IllegalArgumentException,
+            NoSuchFieldException {
+        Field field = object.getClass().getDeclaredField(fieldName);
+        Object out = field.get(object);
+        return out;
+    }
+
+
+
+    @SuppressWarnings("rawtypes")
+    private static void callMethod(Object object, String methodName,
+                                   String[] parameterTypes, Object[] parameterValues)
+            throws ClassNotFoundException, IllegalAccessException,
+            IllegalArgumentException, InvocationTargetException,
+            NoSuchMethodException {
+        Class[] parameterClasses = new Class[parameterTypes.length];
+        for (int i = 0; i < parameterTypes.length; i++)
+            parameterClasses[i] = Class.forName(parameterTypes[i]);
+
+        Method method = object.getClass().getDeclaredMethod(methodName,
+                parameterClasses);
+        method.invoke(object, parameterValues);
+    }
 }
