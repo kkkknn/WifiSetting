@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:padding="10dp"
     android:orientation="horizontal">
 
     <TextView
@@ -11,6 +12,7 @@
         android:id="@+id/item_wifi_name"
         android:layout_weight="8"
         android:textSize="14sp"
+        android:text="123123"
         android:textColor="@color/black"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"/>
@@ -18,7 +20,10 @@
     <TextView
         android:padding="5dp"
         android:id="@+id/item_wifi_power"
+        android:textAlignment="textEnd"
+        android:text="123123"
         android:layout_weight="2"
+        android:textColor="@color/gray"
         android:textSize="14sp"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"/>

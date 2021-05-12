@@ -1,6 +1,8 @@
 package com.example.wifisetting.model;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -53,7 +55,20 @@ public class SpinnerAdapter extends BaseAdapter {
         //Object item =  getItem(pos);
         viewHolder.wifiName.setText(mObjects.get(i)[0]);
         viewHolder.wifiPower.setText(mObjects.get(i)[1]);
-
+        switch (mObjects.get(i)[1]){
+            case "强":
+                viewHolder.wifiPower.setTextColor(Color.GREEN);
+                break;
+            case "中":
+                viewHolder.wifiPower.setTextColor(Color.GRAY);
+                break;
+            case "弱":
+                viewHolder.wifiPower.setTextColor(Color.RED);
+                break;
+            default:
+                viewHolder.wifiPower.setTextColor(Color.WHITE);
+                break;
+        }
         return view;
     }
 

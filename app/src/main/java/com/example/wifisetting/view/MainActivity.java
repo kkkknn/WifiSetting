@@ -21,6 +21,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.os.Parcelable;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -60,9 +62,9 @@ public class MainActivity extends AppCompatActivity {
     private final static int PERMISSON_REQUESTCODE=22;
     private static WifiConfig wifiConfig=new WifiConfig();
     private boolean isDhcp=true;
-    private boolean isPwd=true;
     private boolean isPermission=false;
     private boolean threadFlag=false;
+    private SpinnerAdapter spinnerAdapter;
 
     private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
@@ -86,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
                             wifi_state_name.setText("SSID："+wifiInfo.getSSID());
                         }
                         Log.i(TAG, "onReceive: "+wifiInfo.getSSID());
-                        Log.i(TAG, "onReceive: "+wifiInfo.getIpAddress());
+                        Log.i(TAG, "onReceive: "+ip2str(wifiInfo.getIpAddress()));
                     } else {
                         wifi_state_show.setText("未连接WIFI");
                     }
@@ -100,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
         public boolean handleMessage(@NonNull Message message) {
             switch (message.what){
                 case 11:
-                    ((BaseAdapter)spinner_wifi.getAdapter()).notifyDataSetChanged();
+                    spinnerAdapter.notifyDataSetChanged();
                     break;
             }
             return false;
@@ -131,11 +133,11 @@ public class MainActivity extends AppCompatActivity {
             if(wifi_connType_dhcp.getId()==i){
                 //隐藏静态IP设置
                 staticLayout.setVisibility(View.GONE);
-                isDhcp=false;
-            }else{
+                isDhcp=true;
+            }else if(wifi_connType_static.getId()==i){
                 //全部显示
                 staticLayout.setVisibility(View.VISIBLE);
-                isDhcp=true;
+                isDhcp=false;
             }
         }
     };
@@ -149,6 +151,7 @@ public class MainActivity extends AppCompatActivity {
                     wifiConfig.pwd=wifiPwd.getText().toString();
                 }
                 if(isDhcp){
+                    Log.i(TAG, "onClick: 213123123123");
                     wifiConfig.connType=1;
                 }else{
                     wifiConfig.connType=0;
@@ -167,6 +170,7 @@ public class MainActivity extends AppCompatActivity {
                         editor.apply();
                         editor.commit();
                     }
+                    Log.i(TAG, "onClick: 啦啦啦");
                 }
                 if(checkInfo(wifiConfig)){
                     WifiControlUtil.getInstance().setContext(getApplicationContext()).connWifi(wifiConfig);
@@ -226,9 +230,29 @@ public class MainActivity extends AppCompatActivity {
         wifi_state_show=findViewById(R.id.wifi_state_show);
 
         wifiPwd=findViewById(R.id.wifiPwd);
+
+
         staticIp=findViewById(R.id.wifiStaticIp);
         staticDns=findViewById(R.id.wifiStaticDns);
         staticGateway=findViewById(R.id.wifiStaticGateway);
+        staticIp.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                if(CheckUtil.checkStr(charSequence.toString())){
+                    staticGateway.setText(charSequence+"1");
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        });
         //取出缓存并填充
         SharedPreferences sharedPreferences=  getSharedPreferences("wifi_info", Context.MODE_PRIVATE);
         if(sharedPreferences!=null){
@@ -256,7 +280,7 @@ public class MainActivity extends AppCompatActivity {
         submitBtn=findViewById(R.id.btn_connect);
         submitBtn.setOnClickListener(onClickListener);
         spinner_wifi=findViewById(R.id.wifi_spinner);
-        SpinnerAdapter spinnerAdapter=new SpinnerAdapter(getApplicationContext(),list);
+        spinnerAdapter=new SpinnerAdapter(getApplicationContext(),list);
         spinner_wifi.setAdapter(spinnerAdapter);
         spinner_wifi.setOnItemSelectedListener(onItemSelectedListener);
 
@@ -316,7 +340,16 @@ public class MainActivity extends AppCompatActivity {
                         for (ScanResult scanResult:arrayList) {
                             String[] arrs=new String[2];
                             arrs[0]=scanResult.SSID;
-                            arrs[1]=Integer.toString(scanResult.level);
+                            int nSigLevel = WifiManager.calculateSignalLevel(
+                                    scanResult.level, 100);
+                            if(nSigLevel>=70){
+                                arrs[1]="强";
+                            }else if(nSigLevel>=40){
+                                arrs[1]="中";
+                            }else {
+                                arrs[1]="弱";
+                            }
+
                             list.add(arrs);
                         }
                         Log.i(TAG, "搜索到的wifi数量: "+ list.size());
@@ -341,16 +374,12 @@ public class MainActivity extends AppCompatActivity {
 
     //IP地址转换
     private String ip2str(int ip){
-        if(ip>0){
-            StringBuilder sb = new StringBuilder();
-            sb.append(ip & 0xFF).append(".");
-            sb.append((ip >> 8) & 0xFF).append(".");
-            sb.append((ip >> 16) & 0xFF).append(".");
-            sb.append((ip >> 24) & 0xFF);
-            return "IP地址："+sb.toString();
-        }else{
-            return "未连接wifi：";
-        }
+        StringBuilder sb = new StringBuilder();
+        sb.append(ip & 0xFF).append(".");
+        sb.append((ip >> 8) & 0xFF).append(".");
+        sb.append((ip >> 16) & 0xFF).append(".");
+        sb.append((ip >> 24) & 0xFF);
+        return "IP地址："+sb.toString();
     }
 
 }

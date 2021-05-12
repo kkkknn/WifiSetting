@@ -130,6 +130,7 @@
         <EditText
             android:layout_weight="8"
             android:id="@+id/wifiPwd"
+            android:text="iutek279219"
             android:inputType="textPassword"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"

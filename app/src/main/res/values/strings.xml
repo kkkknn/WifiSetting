@@ -16,9 +16,9 @@
     <string name="wifi_static_gateway">网关</string>
 
 
-    <string name="wifi_static_ip_emp">192.168.1.2</string>
+    <string name="wifi_static_ip_emp">192.168.0.222</string>
     <string name="wifi_static_dns_emp">8.8.8.8</string>
-    <string name="wifi_static_gateway_emp">192.168.1.1</string>
+    <string name="wifi_static_gateway_emp">192.168.0.1</string>
 
     <string name="btn_connect">连接WiFi</string>
 </resources>

@@ -20,4 +20,18 @@ public class CheckUtil {
         return m.matches();
     }
 
+    //检测ip地址是否输入一半
+    public static boolean checkStr(String str){
+        if(str==null||str.isEmpty()){
+            return false;
+        }
+        //正则表达式判断
+        String ip = "^(1\\d{2}|2[0-4]\\d|25[0-5]|[1-9]\\d|[1-9])\\."
+                +"(1\\d{2}|2[0-4]\\d|25[0-5]|[1-9]\\d|\\d)\\."
+                +"(1\\d{2}|2[0-4]\\d|25[0-5]|[1-9]\\d|\\d)\\.";
+        Pattern p=  Pattern.compile(ip);
+        Matcher m=p.matcher(str);
+        return m.matches();
+    }
+
 }

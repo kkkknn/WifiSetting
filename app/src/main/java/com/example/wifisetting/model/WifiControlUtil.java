@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
+import android.util.Log;
 
 import androidx.core.app.ActivityCompat;
 
@@ -87,6 +88,7 @@ public class WifiControlUtil {
             int netId = mWifiManager.addNetwork(getWifiConfig(wifiConfig.name, wifiConfig.pwd, wifiConfig.pwdType));
             mWifiManager.enableNetwork(netId, true);
         }else if(wifiConfig.connType==0){
+            Log.i("123", "connWifi: lalal");
             mWifiManager.disableNetwork(mWifiManager.getConnectionInfo().getNetworkId());
             int netId = 0;
             try {
@@ -98,6 +100,7 @@ public class WifiControlUtil {
                         24,
                         InetAddress.getByName(wifiConfig.staticConnConfig.gateWay_ip),
                         addresses));
+                Log.i("123", "connWifi: lalal");
             } catch (UnknownHostException e) {
                 e.printStackTrace();
             }
@@ -201,6 +204,7 @@ public class WifiControlUtil {
             System.out.println("ttttttttttt" + "成功");
 
         }catch (Exception e){
+            Log.i("TAG", "setStaticIpConfiguration: 错误了 ");
             e.printStackTrace();
         }
         return config;
